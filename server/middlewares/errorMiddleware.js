@@ -35,6 +35,8 @@ export const errorMiddleware = (err, req, res, next) => {
         .join(" ")
     : err.message;
 
+
+
   return res.status(err.statusCode).json({
     success: false,
     message: errorMessage,
