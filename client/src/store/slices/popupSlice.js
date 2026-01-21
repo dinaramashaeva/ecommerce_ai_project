@@ -10,6 +10,9 @@ const popupSlice = createSlice({
     isAIPopupOpen: false,
   },
   reducers: {},
+    toggleAuthPopup(state) {
+      state.isAuthPopupOpen = !state.isAuthPopupOpen;
+    },
 });
 
 export const {
