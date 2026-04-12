@@ -4,7 +4,6 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-
 import { ToastContainer } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
@@ -25,7 +24,6 @@ import { getUser } from "./store/slices/authSlice";
 function App() {
   const { openedComponent } = useSelector((state) => state.extra);
   const { user, isAuthenticated } = useSelector((state) => state.auth);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -36,19 +34,14 @@ function App() {
     switch (openedComponent) {
       case "Dashboard":
         return <Dashboard />;
-
       case "Orders":
         return <Orders />;
-
       case "Users":
         return <Users />;
-
       case "Profile":
         return <Profile />;
-
       case "Products":
         return <Products />;
-
       default:
         return <Dashboard />;
     }
@@ -58,15 +51,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-
         <Route path="/password/forgot" element={<ForgotPassword />} />
+        <Route path="/password/reset/:token" element={<ResetPassword />} />
 
-        <Route
-          path="/password/reset/:token"
-          element={<ResetPassword />}
-        />
-
-        {/* Protected Admin Route */}
         <Route
           path="/"
           element={
