@@ -39,7 +39,7 @@ export const createProduct = catchAsyncErrors(async (req, res, next) => {
     [
       name,
       description,
-      price / 283,
+      price / 83,
       category,
       stock,
       JSON.stringify(uploadedImages),
@@ -178,15 +178,16 @@ export const updateProduct = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Please provide complete product details.", 400)
     );
   }
-  const product = await database.query("SELECT * FROM products WHERE id = $1", [
-    productId,
-  ]);
+  const product = await database.query(
+    "SELECT * FROM products WHERE id = $1",
+    [productId]
+  );
   if (product.rows.length === 0) {
     return next(new ErrorHandler("Product not found.", 404));
   }
   const result = await database.query(
     `UPDATE products SET name = $1, description = $2, price = $3, category = $4, stock = $5 WHERE id = $6 RETURNING *`,
-    [name, description, price / 283, category, stock, productId]
+    [name, description, price / 83, category, stock, productId]
   );
   res.status(200).json({
     success: true,
@@ -198,9 +199,10 @@ export const updateProduct = catchAsyncErrors(async (req, res, next) => {
 export const deleteProduct = catchAsyncErrors(async (req, res, next) => {
   const { productId } = req.params;
 
-  const product = await database.query("SELECT * FROM products WHERE id = $1", [
-    productId,
-  ]);
+  const product = await database.query(
+    "SELECT * FROM products WHERE id = $1",
+    [productId]
+  );
   if (product.rows.length === 0) {
     return next(new ErrorHandler("Product not found.", 404));
   }
@@ -233,24 +235,24 @@ export const fetchSingleProduct = catchAsyncErrors(async (req, res, next) => {
 
   const result = await database.query(
     `
-        SELECT p.*,
-        COALESCE(
-        json_agg(
-        json_build_object(
-            'review_id', r.id,
-            'rating', r.rating,
-            'comment', r.comment,
-            'reviewer', json_build_object(
-            'id', u.id,
-            'name', u.name,
-            'avatar', u.avatar
-            )) 
-        ) FILTER (WHERE r.id IS NOT NULL), '[]') AS reviews
-         FROM products p
-         LEFT JOIN reviews r ON p.id = r.product_id
-         LEFT JOIN users u ON r.user_id = u.id
-         WHERE p.id  = $1
-         GROUP BY p.id`,
+    SELECT p.*,
+    COALESCE(
+    json_agg(
+    json_build_object(
+        'review_id', r.id,
+        'rating', r.rating,
+        'comment', r.comment,
+        'reviewer', json_build_object(
+        'id', u.id,
+        'name', u.name,
+        'avatar', u.avatar
+        )) 
+    ) FILTER (WHERE r.id IS NOT NULL), '[]') AS reviews
+     FROM products p
+     LEFT JOIN reviews r ON p.id = r.product_id
+     LEFT JOIN users u ON r.user_id = u.id
+     WHERE p.id = $1
+     GROUP BY p.id`,
     [productId]
   );
 
@@ -292,9 +294,10 @@ export const postProductReview = catchAsyncErrors(async (req, res, next) => {
     });
   }
 
-  const product = await database.query("SELECT * FROM products WHERE id = $1", [
-    productId,
-  ]);
+  const product = await database.query(
+    "SELECT * FROM products WHERE id = $1",
+    [productId]
+  );
   if (product.rows.length === 0) {
     return next(new ErrorHandler("Product not found.", 404));
   }
@@ -379,39 +382,59 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
 
     const filterKeywords = (query) => {
       const stopWords = new Set([
-        "the", "they", "them", "then", "I", "we", "you", "he", "she", "it",
+        // English
+        "the", "they", "them", "then", "i", "we", "you", "he", "she", "it",
         "is", "a", "an", "of", "and", "or", "to", "for", "from", "on", "who",
         "whom", "why", "when", "which", "with", "this", "that", "in", "at",
         "by", "be", "not", "was", "were", "has", "have", "had", "do", "does",
         "did", "so", "some", "any", "how", "can", "could", "should", "would",
-        "there", "here", "just", "than", "because", "but", "its", "it's",
-        "if", ".", ",", "!", "?", ">", "<", ";", "`",
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+        "there", "here", "just", "than", "because", "but", "its",
+        // Russian
+        "мне", "мой", "моя", "моё", "мои", "я", "ты", "он", "она", "оно",
+        "мы", "вы", "они", "и", "в", "на", "с", "по", "из", "за", "до",
+        "от", "при", "для", "что", "как", "это", "тот", "та", "то", "те",
+        "все", "всё", "или", "но", "да", "нет", "не", "ни", "бы", "же",
+        "ли", "уже", "ещё", "очень", "самый", "самая", "самое", "самые",
+        "лучший", "лучшая", "хороший", "хорошая", "хорошее",
+        "отфильтруй", "найди", "покажи", "хочу", "нужен", "нужна",
       ]);
 
       return query
         .toLowerCase()
-        .replace(/[^\w\s]/g, "")
+        .replace(/[^\w\sа-яёА-ЯЁ]/gi, "")
         .split(/\s+/)
-        .filter((word) => !stopWords.has(word))
+        .filter((word) => word.length > 2 && !stopWords.has(word))
         .map((word) => `%${word}%`);
     };
 
     const keywords = filterKeywords(userPrompt);
 
-    const result = await database.query(
-      `
+    // STEP 1: Try SQL keyword filter
+    let filteredProducts = [];
+
+    if (keywords.length > 0) {
+      const result = await database.query(
+        `
         SELECT * FROM products
         WHERE name ILIKE ANY($1)
         OR description ILIKE ANY($1)
         OR category ILIKE ANY($1)
-        LIMIT 200;     
+        LIMIT 200;
         `,
-      [keywords]
-    );
+        [keywords]
+      );
+      filteredProducts = result.rows;
+    }
 
-    const filteredProducts = result.rows;
+    // STEP 2: If no SQL results (e.g. Russian/Kyrgyz query), send ALL products to AI
+    if (filteredProducts.length === 0) {
+      const allProducts = await database.query(
+        `SELECT * FROM products ORDER BY created_at DESC LIMIT 50`
+      );
+      filteredProducts = allProducts.rows;
+    }
 
+    // Nothing in DB at all
     if (filteredProducts.length === 0) {
       return res.status(200).json({
         success: true,
@@ -420,7 +443,7 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
       });
     }
 
-    // STEP 2: AI FILTERING — fixed: no longer passing req/res
+    // STEP 3: AI FILTERING
     try {
       const { success, products } = await getAIRecommendation(
         userPrompt,
@@ -433,7 +456,9 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
         products,
       });
     } catch (error) {
-      return next(new ErrorHandler(error.message || "AI filtering failed.", 500));
+      return next(
+        new ErrorHandler(error.message || "AI filtering failed.", 500)
+      );
     }
   }
 );

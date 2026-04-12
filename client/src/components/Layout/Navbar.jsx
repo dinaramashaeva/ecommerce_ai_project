@@ -10,14 +10,12 @@ import {
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
-
   const dispatch = useDispatch();
 
-  // cart state
   const { cart } = useSelector((state) => state.cart);
+  const { authUser } = useSelector((state) => state.auth);
 
   let cartItemsCount = 0;
-
   if (cart) {
     cartItemsCount = cart.reduce(
       (total, item) => total + item.quantity,
@@ -68,12 +66,24 @@ const Navbar = () => {
               <Search className="w-5 h-5 text-foreground" />
             </button>
 
-            {/* USER PROFILE */}
+            {/* USER — shows avatar if logged in, user icon if not */}
             <button
               onClick={() => dispatch(toggleAuthPopup())}
-              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              className="p-2 rounded-lg hover:bg-secondary transition-colors relative"
             >
-              <User className="w-5 h-5 text-foreground" />
+              {authUser ? (
+                <div className="relative">
+                  <img
+                    src={authUser.avatar?.url || "/avatar-holder.avif"}
+                    alt={authUser.name}
+                    className="w-7 h-7 rounded-full object-cover border-2 border-primary"
+                  />
+                  {/* Online indicator */}
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background" />
+                </div>
+              ) : (
+                <User className="w-5 h-5 text-foreground" />
+              )}
             </button>
 
             {/* CART */}
@@ -82,7 +92,6 @@ const Navbar = () => {
               className="relative p-2 rounded-lg hover:bg-secondary transition-colors"
             >
               <ShoppingCart className="w-5 h-5 text-foreground" />
-
               {cartItemsCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItemsCount}
