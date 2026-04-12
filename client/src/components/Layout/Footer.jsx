@@ -45,7 +45,7 @@ const Footer = () => {
           {/* Brand & Contact */}
           <div className="lg:col-span-1">
             <h2 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent mb-4">
-              ShopMate
+              BuyWise
             </h2>
             <p className="text-muted-foreground mb-6">
               Your trusted partner for online shopping. Discover amazing
@@ -167,7 +167,7 @@ const Footer = () => {
 
           <div className="text-center md:text-right">
             <p className="text-muted-foreground text-sm">
-              © 2024 ShopMate. All rights reserved.
+              © 2026 BuyWise. All rights reserved.
             </p>
             <p className="text-muted-foreground text-xs mt-1">
               Developed By CodeWithZeeshu

@@ -41,7 +41,7 @@ const Navbar = () => {
           {/* CENTER — LOGO */}
           <div className="flex-1 flex justify-center">
             <h1 className="text-2xl font-bold text-primary">
-              ShopMate
+              BuyWise
             </h1>
           </div>
 

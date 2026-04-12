@@ -1,47 +1,66 @@
-export async function getAIRecommendation(req, res, userPrompt, products) {
-  const API_KEY = process.env.GEMINI_API_KEY;
-  const URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+export async function getAIRecommendation(userPrompt, products) {
+  const API_KEY = process.env.OPENROUTER_API_KEY;
 
-  try {
-    const geminiPrompt = `
-        Here is a list of avaiable products:
-        ${JSON.stringify(products, null, 2)}
+  const systemPrompt = `You are a product search assistant. You will be given a list of products and a user request. 
+  You must return ONLY a valid JSON array of matching products from the list. 
+  No explanation, no markdown, no code blocks. Just a raw JSON array.
+  If no products match, return an empty array [].`;
 
-        Based on the following user request, filter and suggest the best matching products:
-        "${userPrompt}"
+  const userMessage = `
+    Here is the list of available products:
+    ${JSON.stringify(products, null, 2)}
 
-        Only return the matching products in JSON format.
-    `;
+    User request: "${userPrompt}"
 
-    const response = await fetch(URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: geminiPrompt }] }],
-      }),
-    });
+    Return only the matching products as a raw JSON array.
+  `;
 
-    const data = await response.json();
-    const aiResponseText =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-    const cleanedText = aiResponseText.replace(/```json|```/g, ``).trim();
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${API_KEY}`,
+      "HTTP-Referer": "http://localhost:5173",
+      "X-Title": "BuyWise",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.0-flash-lite-001",  // still Google's model but through OpenRouter
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userMessage },
+      ],
+    }),
+  });
 
-    if (!cleanedText) {
-      return res
-        .status(500)
-        .json({ success: false, message: "AI response is empty or invalid." });
-    }
+  const data = await response.json();
 
-    let parsedProducts;
-    try {
-      parsedProducts = JSON.parse(cleanedText);
-    } catch (error) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to parse AI response" });
-    }
-    return { success: true, products: parsedProducts };
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error." });
+  console.log("OpenRouter response:", JSON.stringify(data, null, 2));
+
+  if (data.error) {
+    throw new Error(`AI error: ${data.error.message}`);
   }
+
+  const aiResponseText =
+    data?.choices?.[0]?.message?.content?.trim() || "";
+
+  console.log("AI response text:", aiResponseText);
+
+  const cleanedText = aiResponseText
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  if (!cleanedText) {
+    throw new Error("AI response is empty or invalid.");
+  }
+
+  let parsedProducts;
+  try {
+    parsedProducts = JSON.parse(cleanedText);
+  } catch (error) {
+    console.log("Parse error:", error.message);
+    throw new Error("Failed to parse AI response.");
+  }
+
+  return { success: true, products: parsedProducts };
 }
