@@ -5,11 +5,12 @@ const OrdersChart = () => {
   const { orderStatusCounts } = useSelector((state) => state.admin);
 
   const statusColors = {
-    Processing: "#facc15", // yellow
-    Shipped: "#3b82f6", // blue
-    Delivered: "#22c55e", // green
-    Cancelled: "#ef4444", // red
+    Processing: "#facd15",
+    Shipped: "#3b82f6",
+    Delivered: "#22c55e",
+    Cancelled: "#ef4444",
   };
+
   const orderStatusData = Object.keys(orderStatusCounts).map((status) => ({
     status,
     count: parseInt(orderStatusCounts[status]),
@@ -19,6 +20,7 @@ const OrdersChart = () => {
     <>
       <div className="bg-white p-4 rounded-xl shadow-md">
         <h3 className="font-semibold mb-2">Order Status</h3>
+
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie
@@ -33,10 +35,11 @@ const OrdersChart = () => {
               {orderStatusData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={statusColors[entry.status] || "#ccc"} // fallback color
+                  fill={statusColors[entry.status] || "#ccc"}
                 />
               ))}
             </Pie>
+
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>

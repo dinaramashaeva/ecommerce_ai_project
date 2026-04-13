@@ -4,10 +4,8 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        "dark-gradient": "linear-gradient(195deg, #42424a, #191919)",
-        "red-gradient": "linear-gradient(195deg, #e25656, #ff0000)",
-        "blue-gradient": "linear-gradient(195deg, #6fc7ce, #004cff)",
-         
+        "red-gradient": "linear-gradient(135deg, #ef4444, #dc2626)",
+        "dark-gradient": "linear-gradient(135deg, #1e293b, #0f172a)",
       },
     },
   },

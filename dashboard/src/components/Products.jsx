@@ -16,7 +16,7 @@ import {
 import {
   fetchAllProducts,
   deleteProduct,
-} from "../store/slices/productSlice";
+} from "../store/slices/productsSlice";
 
 const Products = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -71,7 +71,7 @@ const Products = () => {
               }`}
             >
               {fetchingProducts ? (
-                <div className="w-40 h-40 mx-auto border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-40 h-40 mx-auto border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
               ) : products && products.length > 0 ? (
                 <table className="min-w-full bg-white border border-gray-200">
                   <thead className="bg-blue-100 text-gray-700">
@@ -79,7 +79,7 @@ const Products = () => {
                       <th className="py-3 px-4 text-left">Image</th>
                       <th className="py-3 px-4 text-left">Title</th>
                       <th className="py-3 px-4 text-left">Category</th>
-                      <th className="py-3 px-4 text-left">Price</th>
+                      <th className="py-3 px-4 text-left">Price ($)</th>
                       <th className="py-3 px-4 text-left">Stock</th>
                       <th className="py-3 px-4 text-left">Ratings</th>
                       <th className="py-3 px-4 text-left">Actions</th>
@@ -87,65 +87,61 @@ const Products = () => {
                   </thead>
 
                   <tbody>
-                    {products.map((product, index) => {
-                      return (
-                        <tr
-                          key={index}
-                          className="border-t hover:bg-gray-50"
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            dispatch(toggleViewProductModal());
-                          }}
-                        >
-                          <td className="py-3 px-4">
-                            <img
-                              src={product?.images?.[0]?.url}
-                              alt={product?.name}
-                              className="w-10 h-10 rounded-md object-cover"
-                            />
-                          </td>
-
-                          <td className="px-3 py-4">{product.name}</td>
-                          <td className="px-3 py-4">{product.category}</td>
-                          <td className="px-3 py-4">{product.price}</td>
-                          <td className="px-3 py-4">{product.stock}</td>
-                          <td className="px-3 py-4 text-yellow-500">
-                            {product.ratings}
-                          </td>
-
-                          <td className="px-4 py-3 flex gap-2">
-                            <button
-                              className="text-white rounded-md cursor-pointer px-3 py-2 font-semibold bg-blue-500"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedProduct(product);
-                                dispatch(toggleUpdateProductModal());
-                              }}
-                            >
-                              Update
-                            </button>
-
-                            <button
-                              className="text-white rounded-md cursor-pointer px-3 py-2 font-semibold bg-red-gradient flex gap-2 items-center"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedProduct(product);
-                                dispatch(deleteProduct(product.id, page));
-                              }}
-                            >
-                              {selectedProduct?.id === product.id && loading ? (
-                                <>
-                                  <LoaderCircle className="w-6 h-6 animate-spin" />
-                                  Deleting...
-                                </>
-                              ) : (
-                                "Delete"
-                              )}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {products.map((product, index) => (
+                      <tr
+                        key={index}
+                        className="border-t hover:bg-gray-50 cursor-pointer"
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          dispatch(toggleViewProductModal());
+                        }}
+                      >
+                        <td className="py-3 px-4">
+                          <img
+                            src={product?.images?.[0]?.url}
+                            alt={product?.name}
+                            className="w-10 h-10 rounded-md object-cover"
+                          />
+                        </td>
+                        <td className="px-3 py-4">{product.name}</td>
+                        <td className="px-3 py-4">{product.category}</td>
+                        <td className="px-3 py-4">
+                          ${parseFloat(product.price).toFixed(2)}
+                        </td>
+                        <td className="px-3 py-4">{product.stock}</td>
+                        <td className="px-3 py-4 text-yellow-500">
+                          ⭐ {parseFloat(product.ratings || 0).toFixed(1)}
+                        </td>
+                        <td className="px-4 py-3 flex gap-2">
+                          <button
+                            className="text-white rounded-md cursor-pointer px-3 py-2 font-semibold bg-blue-500 hover:bg-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedProduct(product);
+                              dispatch(toggleUpdateProductModal());
+                            }}
+                          >
+                            Update
+                          </button>
+                          <button
+                            className="text-white rounded-md cursor-pointer px-3 py-2 font-semibold bg-red-gradient flex gap-2 items-center"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dispatch(deleteProduct(product.id, page));
+                            }}
+                          >
+                            {selectedProduct?.id === product.id && loading ? (
+                              <>
+                                <LoaderCircle className="w-4 h-4 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              "Delete"
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               ) : (
@@ -153,8 +149,7 @@ const Products = () => {
               )}
             </div>
 
-            {/* PAGINATION */}
-            {!fetchingProducts && products.length > 0 && (
+            {!fetchingProducts && products && products.length > 0 && (
               <div className="flex justify-center mt-6 gap-4">
                 <button
                   onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
@@ -163,9 +158,7 @@ const Products = () => {
                 >
                   Previous
                 </button>
-
                 <span className="px-4 py-2 text-gray-700">Page {page}</span>
-
                 <button
                   onClick={() => setPage((prev) => prev + 1)}
                   disabled={maxPage === page}
@@ -188,11 +181,9 @@ const Products = () => {
       </main>
 
       {isCreateProductModalOpened && <CreateProductModal />}
-
       {isUpdateProductModalOpened && (
         <UpdateProductModal selectedProduct={selectedProduct} />
       )}
-
       {isViewProductModalOpened && (
         <ViewProductModal selectedProduct={selectedProduct} />
       )}

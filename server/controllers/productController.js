@@ -39,7 +39,7 @@ export const createProduct = catchAsyncErrors(async (req, res, next) => {
     [
       name,
       description,
-      price / 83,
+      price, // direct USD — no conversion
       category,
       stock,
       JSON.stringify(uploadedImages),
@@ -187,7 +187,7 @@ export const updateProduct = catchAsyncErrors(async (req, res, next) => {
   }
   const result = await database.query(
     `UPDATE products SET name = $1, description = $2, price = $3, category = $4, stock = $5 WHERE id = $6 RETURNING *`,
-    [name, description, price / 83, category, stock, productId]
+    [name, description, price, category, stock, productId] // direct USD
   );
   res.status(200).json({
     success: true,
@@ -382,14 +382,12 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
 
     const filterKeywords = (query) => {
       const stopWords = new Set([
-        // English
         "the", "they", "them", "then", "i", "we", "you", "he", "she", "it",
         "is", "a", "an", "of", "and", "or", "to", "for", "from", "on", "who",
         "whom", "why", "when", "which", "with", "this", "that", "in", "at",
         "by", "be", "not", "was", "were", "has", "have", "had", "do", "does",
         "did", "so", "some", "any", "how", "can", "could", "should", "would",
         "there", "here", "just", "than", "because", "but", "its",
-        // Russian
         "мне", "мой", "моя", "моё", "мои", "я", "ты", "он", "она", "оно",
         "мы", "вы", "они", "и", "в", "на", "с", "по", "из", "за", "до",
         "от", "при", "для", "что", "как", "это", "тот", "та", "то", "те",
@@ -409,7 +407,6 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
 
     const keywords = filterKeywords(userPrompt);
 
-    // STEP 1: Try SQL keyword filter
     let filteredProducts = [];
 
     if (keywords.length > 0) {
@@ -426,7 +423,6 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
       filteredProducts = result.rows;
     }
 
-    // STEP 2: If no SQL results (e.g. Russian/Kyrgyz query), send ALL products to AI
     if (filteredProducts.length === 0) {
       const allProducts = await database.query(
         `SELECT * FROM products ORDER BY created_at DESC LIMIT 50`
@@ -434,7 +430,6 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
       filteredProducts = allProducts.rows;
     }
 
-    // Nothing in DB at all
     if (filteredProducts.length === 0) {
       return res.status(200).json({
         success: true,
@@ -443,7 +438,6 @@ export const fetchAIFilteredProducts = catchAsyncErrors(
       });
     }
 
-    // STEP 3: AI FILTERING
     try {
       const { success, products } = await getAIRecommendation(
         userPrompt,
