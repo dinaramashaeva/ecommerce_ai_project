@@ -98,13 +98,12 @@ export const forgotPassword = catchAsyncErrors(async (req, res, next) => {
   );
 
   const resetPasswordUrl = `${frontendUrl}/password/reset/${resetToken}`;
-
   const message = generateEmailTemplate(resetPasswordUrl);
 
   try {
     await sendEmail({
       email: user.email,
-      subject: "Ecommerce Password Recovery",
+      subject: "BuyWise Password Recovery",
       message,
     });
     res.status(200).json({
@@ -147,7 +146,6 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
     );
   }
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
   const updatedUser = await database.query(
     `UPDATE users SET password = $1, reset_password_token = NULL, reset_password_expire = NULL WHERE id = $2 RETURNING *`,
     [hashedPassword, user.rows[0].id]
@@ -157,7 +155,6 @@ export const resetPassword = catchAsyncErrors(async (req, res, next) => {
 
 export const updatePassword = catchAsyncErrors(async (req, res, next) => {
   const { currentPassword, newPassword, confirmNewPassword } = req.body;
-  console.log(currentPassword, newPassword, confirmNewPassword)
   if (!currentPassword || !newPassword || !confirmNewPassword) {
     return next(new ErrorHandler("Please provide all required fields.", 400));
   }
@@ -171,7 +168,6 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
   if (newPassword !== confirmNewPassword) {
     return next(new ErrorHandler("New passwords do not match.", 400));
   }
-
   if (
     newPassword.length < 8 ||
     newPassword.length > 16 ||
@@ -182,14 +178,11 @@ export const updatePassword = catchAsyncErrors(async (req, res, next) => {
       new ErrorHandler("Password must be between 8 and 16 characters.", 400)
     );
   }
-
   const hashedPassword = await bcrypt.hash(newPassword, 10);
-
   await database.query("UPDATE users SET password = $1 WHERE id = $2", [
     hashedPassword,
     req.user.id,
   ]);
-
   res.status(200).json({
     success: true,
     message: "Password updated successfully.",
@@ -210,7 +203,6 @@ export const updateProfile = catchAsyncErrors(async (req, res, next) => {
     if (req.user?.avatar?.public_id) {
       await cloudinary.uploader.destroy(req.user.avatar.public_id);
     }
-
     const newProfileImage = await cloudinary.uploader.upload(
       avatar.tempFilePath,
       {
@@ -241,6 +233,43 @@ export const updateProfile = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Profile updated successfully.",
+    user: user.rows[0],
+  });
+});
+
+export const createUser = catchAsyncErrors(async (req, res, next) => {
+  const { name, email, password, role } = req.body;
+
+  if (!name || !email || !password) {
+    return next(new ErrorHandler("Please provide all required fields.", 400));
+  }
+
+  if (password.length < 8 || password.length > 16) {
+    return next(
+      new ErrorHandler("Password must be between 8 and 16 characters.", 400)
+    );
+  }
+
+  const isAlreadyRegistered = await database.query(
+    `SELECT * FROM users WHERE email = $1`,
+    [email]
+  );
+
+  if (isAlreadyRegistered.rows.length > 0) {
+    return next(
+      new ErrorHandler("User already registered with this email.", 400)
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await database.query(
+    "INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *",
+    [name, email, hashedPassword, role || "User"]
+  );
+
+  res.status(201).json({
+    success: true,
+    message: "User created successfully.",
     user: user.rows[0],
   });
 });

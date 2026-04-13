@@ -8,8 +8,9 @@ import {
   resetPassword,
   updatePassword,
   updateProfile,
+  createUser,
 } from "../controllers/authController.js";
-import { isAuthenticated } from "../middlewares/authMiddleware.js";
+import { isAuthenticated, authorizedRoles } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,5 +22,11 @@ router.post("/password/forgot", forgotPassword);
 router.put("/password/reset/:token", resetPassword);
 router.put("/password/update", isAuthenticated, updatePassword);
 router.put("/profile/update", isAuthenticated, updateProfile);
+router.post(
+  "/admin/create-user",
+  isAuthenticated,
+  authorizedRoles("Admin"),
+  createUser
+);
 
 export default router;
