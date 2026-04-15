@@ -170,7 +170,7 @@ const Footer = () => {
               © 2026 BuyWise. All rights reserved.
             </p>
             <p className="text-muted-foreground text-xs mt-1">
-              Developed By CodeWithZeeshu
+              Developed By Mashaeva Dinara
             </p>
           </div>
         </div>
