@@ -2,8 +2,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ToastContainer } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { Loader } from "lucide-react";
+import { I18nextProvider } from "react-i18next";
+import i18n from "./i18n.js";
 
 // Layout Components
 import Navbar from "./components/Layout/Navbar";
@@ -62,45 +64,49 @@ const App = () => {
   }
 
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <div className="min-h-screen bg-background">
-          <Navbar />
-          <Sidebar />
-          <SearchOverlay />
-          <CartSidebar />
-          <ProfilePanel />
-          <LoginModal />
+    <I18nextProvider i18n={i18n}>
+      <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loader className="size-10 animate-spin" /></div>}>
+        <ThemeProvider>
+          <BrowserRouter>
+            <div className="min-h-screen bg-background">
+              <Navbar />
+              <Sidebar />
+              <SearchOverlay />
+              <CartSidebar />
+              <ProfilePanel />
+              <LoginModal />
 
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/password/reset/:token" element={<Index />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/payment" element={<Payment />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/password/reset/:token" element={<Index />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/payment" element={<Payment />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
 
-          <Footer />
-        </div>
+              <Footer />
+            </div>
 
-        <ToastContainer
-          position="top-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          pauseOnHover
-          draggable
-          theme="light"
-        />
-      </BrowserRouter>
-    </ThemeProvider>
+            <ToastContainer
+              position="top-center"
+              autoClose={3000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              pauseOnHover
+              draggable
+              theme="light"
+            />
+          </BrowserRouter>
+        </ThemeProvider>
+      </Suspense>
+    </I18nextProvider>
   );
 };
 

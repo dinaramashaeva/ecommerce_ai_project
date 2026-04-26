@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import avatar from "../assets/avatar.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import Header from "./Header";
-import { deleteUser, fetchAllUsers } from "../store/slices/adminSlice";
+import { deleteUser, fetchAllUsers, updateUserRole } from "../store/slices/adminSlice";
 import { axiosInstance } from "../lib/axios";
 import { toast } from "react-toastify";
-import { UserPlus, X } from "lucide-react";
+import { UserPlus, X, Shield, ShieldOff } from "lucide-react";
 
 const Users = () => {
   const [page, setPage] = useState(1);
@@ -39,7 +39,16 @@ const Users = () => {
   }, [maxPage, page]);
 
   const handleDeleteUser = (id) => {
-    dispatch(deleteUser(id, page));
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      dispatch(deleteUser(id, page));
+    }
+  };
+
+  const handleRoleToggle = (id, currentRole) => {
+    const newRole = currentRole === "Admin" ? "User" : "Admin";
+    if (window.confirm(`Change this user's role to ${newRole}?`)) {
+      dispatch(updateUserRole(id, newRole, page));
+    }
   };
 
   const handleCreateUser = async (e) => {
@@ -69,13 +78,9 @@ const Users = () => {
           </p>
 
           <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
-            <div
-              className={`overflow-x-auto rounded-lg ${
-                loading
-                  ? "p-10 shadow-none"
-                  : `${users && users.length > 0 && "shadow-lg"}`
-              }`}
-            >
+            <div className={`overflow-x-auto rounded-lg ${
+              loading ? "p-10 shadow-none" : `${users && users.length > 0 && "shadow-lg"}`
+            }`}>
               {loading ? (
                 <div className="w-16 h-16 mx-auto border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
               ) : users && users.length > 0 ? (
@@ -100,10 +105,10 @@ const Users = () => {
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         </td>
-                        <td className="px-3 py-4">{user.name}</td>
+                        <td className="px-3 py-4 font-medium">{user.name}</td>
                         <td className="px-3 py-4">{user.email}</td>
                         <td className="px-3 py-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                             user.role === "Admin"
                               ? "bg-purple-100 text-purple-700"
                               : "bg-green-100 text-green-700"
@@ -115,12 +120,32 @@ const Users = () => {
                           {new Date(user.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-3 py-4">
-                          <button
-                            onClick={() => handleDeleteUser(user.id)}
-                            className="text-white rounded-md cursor-pointer px-3 py-2 font-semibold bg-red-gradient hover:opacity-90"
-                          >
-                            Delete
-                          </button>
+                          <div className="flex gap-2">
+                            {/* Role Toggle Button */}
+                            <button
+                              onClick={() => handleRoleToggle(user.id, user.role)}
+                              className={`flex items-center gap-1 px-3 py-2 rounded-md text-sm font-semibold text-white transition ${
+                                user.role === "Admin"
+                                  ? "bg-yellow-500 hover:bg-yellow-600"
+                                  : "bg-purple-500 hover:bg-purple-600"
+                              }`}
+                              title={user.role === "Admin" ? "Remove Admin" : "Make Admin"}
+                            >
+                              {user.role === "Admin" ? (
+                                <><ShieldOff className="w-4 h-4" /> Remove Admin</>
+                              ) : (
+                                <><Shield className="w-4 h-4" /> Make Admin</>
+                              )}
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="px-3 py-2 rounded-md text-sm font-semibold text-white bg-red-gradient hover:opacity-90"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -176,7 +201,6 @@ const Users = () => {
             <h2 className="text-2xl font-bold mb-6 text-center">
               Create New User
             </h2>
-
             <form onSubmit={handleCreateUser} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -186,14 +210,11 @@ const Users = () => {
                   type="text"
                   required
                   value={newUser.name}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, name: e.target.value })
-                  }
+                  onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                   placeholder="John Doe"
                   className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email *
@@ -202,14 +223,11 @@ const Users = () => {
                   type="email"
                   required
                   value={newUser.email}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, email: e.target.value })
-                  }
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                   placeholder="john@example.com"
                   className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Password * (8-16 characters)
@@ -218,30 +236,24 @@ const Users = () => {
                   type="password"
                   required
                   value={newUser.password}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, password: e.target.value })
-                  }
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                   placeholder="Min 8 characters"
                   className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Role
                 </label>
                 <select
                   value={newUser.role}
-                  onChange={(e) =>
-                    setNewUser({ ...newUser, role: e.target.value })
-                  }
+                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                   className="w-full border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="User">User</option>
                   <option value="Admin">Admin</option>
                 </select>
               </div>
-
               <button
                 type="submit"
                 disabled={creating}

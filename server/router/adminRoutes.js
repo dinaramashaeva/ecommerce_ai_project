@@ -3,6 +3,7 @@ import {
   getAllUsers,
   deleteUser,
   dashboardStats,
+  updateUserRole,
 } from "../controllers/adminController.js";
 import {
   authorizedRoles,
@@ -30,6 +31,13 @@ router.get(
   isAuthenticated,
   authorizedRoles("Admin"),
   dashboardStats
+);
+
+router.put(
+  "/update-role/:id",
+  isAuthenticated,
+  authorizedRoles("Admin"),
+  updateUserRole
 );
 
 export default router;

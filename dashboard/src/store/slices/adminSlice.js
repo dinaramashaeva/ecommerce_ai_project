@@ -32,7 +32,6 @@ export const adminSlice = createSlice({
     getAllUsersFailed(state) {
       state.loading = false;
     },
-
     deleteUserRequest(state) {
       state.loading = true;
     },
@@ -45,7 +44,6 @@ export const adminSlice = createSlice({
     deleteUserFailed(state) {
       state.loading = false;
     },
-
     getStatsRequest(state) {
       state.loading = true;
     },
@@ -71,7 +69,6 @@ export const adminSlice = createSlice({
 
 export const fetchAllUsers = (page) => async (dispatch) => {
   dispatch(adminSlice.actions.getAllUsersRequest());
-
   await axiosInstance
     .get(`/admin/getallusers?page=${page || 1}`)
     .then((res) => {
@@ -84,19 +81,15 @@ export const fetchAllUsers = (page) => async (dispatch) => {
 
 export const deleteUser = (id, page) => async (dispatch, getState) => {
   dispatch(adminSlice.actions.deleteUserRequest());
-
   await axiosInstance
     .delete(`/admin/delete/${id}`)
     .then((res) => {
       dispatch(adminSlice.actions.deleteUserSuccess(id));
       toast.success(res.data.message || "User deleted successfully.");
-
       const state = getState();
       const updatedTotal = state.admin.totalUsers;
       const updatedMaxPage = Math.ceil(updatedTotal / 10) || 1;
-
       const validPage = Math.min(page, updatedMaxPage);
-
       dispatch(fetchAllUsers(validPage));
     })
     .catch((error) => {
@@ -105,9 +98,18 @@ export const deleteUser = (id, page) => async (dispatch, getState) => {
     });
 };
 
+export const updateUserRole = (id, role, page) => async (dispatch) => {
+  try {
+    const res = await axiosInstance.put(`/admin/update-role/${id}`, { role });
+    toast.success(res.data.message);
+    dispatch(fetchAllUsers(page));
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Failed to update role.");
+  }
+};
+
 export const getDashboardStats = () => async (dispatch) => {
   dispatch(adminSlice.actions.getStatsRequest());
-
   await axiosInstance
     .get("/admin/fetch/dashboard-stats")
     .then((res) => {

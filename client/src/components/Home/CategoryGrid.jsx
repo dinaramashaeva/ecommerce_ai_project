@@ -1,14 +1,18 @@
 import { Link } from "react-router-dom";
 import { categories } from "../../data/products";
+import { useTranslation } from "react-i18next";
+
 const CategoryGrid = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-16">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-foreground mb-4">
-          Shop by Category
+          {t("shopByCategory")}
         </h2>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Discover our wide range of products across different categories
+          {t("discoverCategories")}
         </p>
       </div>
 
@@ -17,7 +21,7 @@ const CategoryGrid = () => {
           <Link
             key={category.id}
             to={`/products?category=${category.name}`}
-            className="group glass-card p-6 text-center hover:glow-on-hover animate-smooth"
+            className="group glass-card p-6 text-center animate-smooth"
           >
             <div className="relative overflow-hidden rounded-lg mb-4">
               <img
