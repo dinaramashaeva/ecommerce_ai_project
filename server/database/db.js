@@ -1,12 +1,11 @@
 import pkg from "pg";
 const { Client } = pkg;
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const database = new Client({
-  user: "postgres",
-  host: "localhost",
-  database: "mern_ecommerce_store ",
-  password: "12345678",
-  port: 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 
 try {

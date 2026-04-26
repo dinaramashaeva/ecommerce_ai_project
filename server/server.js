@@ -1,6 +1,7 @@
+import "./config/loadEnv.js"; // MUST BE ABSOLUTE FIRST IMPORT
 import app from "./app.js";
 import { v2 as cloudinary } from "cloudinary";
-console.log("GEMINI KEY:", process.env.GEMINI_API_KEY);
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLIENT_NAME,
   api_key: process.env.CLOUDINARY_CLIENT_API,
