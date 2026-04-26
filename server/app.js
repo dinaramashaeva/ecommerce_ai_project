@@ -1,5 +1,4 @@
 import express from "express";
-
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import fileUpload from "express-fileupload";
@@ -13,9 +12,26 @@ import database from "./database/db.js";
 
 const app = express();
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.DASHBOARD_URL,
+  "https://buywise-client.vercel.app",
+  "https://buywise-admin.vercel.app",
+  "https://buywise-client-git-master-dinaramashaevas-projects.vercel.app",
+  "https://buywise-admin-git-master-dinaramashaevas-projects.vercel.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+];
+
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, process.env.DASHBOARD_URL],
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
