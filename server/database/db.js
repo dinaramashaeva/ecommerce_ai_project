@@ -8,12 +8,17 @@ const database = new Client({
   ssl: isProduction ? { rejectUnauthorized: false } : false,
 });
 
-try {
-  await database.connect();
-  console.log("Connected to the database successfully");
-} catch (error) {
-  console.error("Database connection failed:", error);
-  process.exit(1);
-}
+export const connectDatabase = async () => {
+  try {
+    await database.connect();
+    await database.query("SET search_path TO public");
+    console.log("Connected to the database successfully");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    process.exit(1);
+  }
+};
+
+await connectDatabase();
 
 export default database;
