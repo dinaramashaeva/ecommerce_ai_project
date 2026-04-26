@@ -243,7 +243,7 @@ const Payment = () => {
                   {cart.map((item) => (
                     <div key={item.product.id} className="flex items-center space-x-3">
                       <img
-                        src={item.product.images[0].url}
+                        src={item.product?.images?.[0]?.url || "/placeholder.jpg"}
                         alt={item.product.name}
                         className="w-12 h-12 object-cover rounded"
                       />

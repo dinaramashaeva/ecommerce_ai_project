@@ -72,7 +72,7 @@ const Cart = () => {
                 <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
                   <Link to={`/product/${item.product.id}`} className="flex-shrink-0">
                     <img
-                      src={item.product.images[0].url}
+                      src={item.product?.images?.[0]?.url || "/placeholder.jpg"}
                       alt={item.product.name}
                       className="w-24 h-24 object-cover rounded-lg hover:scale-105 transition-transform"
                     />
